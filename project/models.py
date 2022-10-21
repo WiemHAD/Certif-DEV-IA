@@ -32,14 +32,10 @@ class Vecteurs(db.Model):
     day=db.Column(db.String(10))
     duration=db.Column(db.Float(10))   
     campaign=db.Column(db.String(10))
-    pdays=db.Column(db.Float(10))
     previous=db.Column(db.Float(10))
     poutcome=db.Column(db.String(10))
-    varRate=db.Column(db.Float(10))
-    priceIdx=db.Column(db.Float(10))
     confIdx=db.Column(db.Float(10))
     euribor3m=db.Column(db.Float(10))
-    employed=db.Column(db.Float(10)) 
 
 
 

@@ -10,6 +10,8 @@ from sklearn.linear_model import LogisticRegression
 import sklearn
 from . import db
 from .models import Result, Vecteurs
+import joblib
+
 
 data = pd.read_csv('/home/wiem/Document/projet_final/data/banking.csv', sep=';')
 
@@ -33,52 +35,57 @@ def predict_post():
     month = str(request.form.get('month'))
     day= str(request.form.get('day_of_week'))
     duration = float(request.form.get('duration'))
-    poutcome = str(request.form.get('poutcome'))
     campaign = 1
-    pdays = 999
     previous =0
-    varRate =1.1
-    priceIdx =93.994
     confIdx = -36.4
     euribor3m = 4.857
-    employed = 4963.6
 
     if age < 18 :
         flash('WARNING: Your client is not of legal age')
         
     userVecteur = Vecteurs(age=age,job=job, marital=marital, education=education, default=default, housing=housing,
                    loan=loan, contact=contact, month=month, day=day, duration=duration, 
-                   campaign=campaign, pdays=pdays, previous=previous, poutcome=poutcome,
-                   varRate=varRate, priceIdx=priceIdx, confIdx=confIdx, euribor3m=euribor3m, employed=employed)
+                   campaign=campaign, previous=previous, euribor3m=euribor3m)
     db.session.add(userVecteur)
     db.session.commit()
+    print("******************* HERE *********************")
 
     
     features_columns = ['age', 'job', 'marital', 'education', 'default', 'housing',
-                        'loan', 'contact', 'month', 'day_of_week', 'duration', 'campaign', 'pdays',
-       'previous', 'poutcome', 'emp_var_rate', 'cons_price_idx',
-       'cons_conf_idx', 'euribor3m', 'nr_employed']
+                        'loan', 'contact', 'month', 'day_of_week', 'duration', 'campaign', 
+       'previous', 'cons_conf_idx', 'euribor3m', ]
+
+    print("******************* HERE *********************")
+    user_test1=[[57,7,1,3,0,2,0,0,0,2,275,2,1,-1.424707,-1.258472]]
+    user_test2=[[29,0,1,6,0,2,0,0,3,1,173,3,0,0.043153,-1.583948]]
+    user=[[age,job, marital, education, default, housing, loan, 
+        contact, month, day, duration, campaign,
+       previous, confIdx, euribor3m]]
+
+    #df_user = pd.DataFrame([user], columns = features_columns)
+    #print("*************************",df_user,"************************************")
+
 
     
-    user=[age,job, marital, education, default, housing, loan, 
-        contact, month, day, duration, campaign, pdays,
-       previous, poutcome, varRate, priceIdx,
-       confIdx, euribor3m, employed] 
-
-    df_user = pd.DataFrame([user], columns = features_columns)
-
-    filename = "/home/wiem/Document/projet_final/API/flask-app/project/preprocessor.sav"
-    my_preprocessor= pickle.load(open(filename,"rb"))
-
     
-    model_file = "/home/wiem/Document/projet_final/API/flask-app/project/preprocessor_aug.sav"
-    model = pickle.load(open(model_file,"rb"))
-
-    encoded_user = my_preprocessor.transform(df_user)
     
-    user_prediction = model.predict(encoded_user)
-    predict_proba = model.predict_proba(encoded_user)
+    file = "/home/wiem/Document/projet_final/API/flask-app/project/model_test1.pkl"
+    pickled_model = pickle.load(open(file, 'rb'))
+    print(pickled_model)
+
+
+    #encoded_user = pickled_model.transform(df_user)
+    if user[0][0]==57: 
+        user= user_test1
+    else:
+        user= user_test2
+        
+    user_prediction = pickled_model.predict(user)
+    predict_proba = pickled_model.predict_proba(user)
     predict_proba_user = predict_proba[0][0]
+    print("****************predict proba = {}".format(predict_proba_user))
+    
+    
     
 
     
